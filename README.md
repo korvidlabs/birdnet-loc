@@ -5,6 +5,11 @@ instance that is fed by several microphones (security cameras, in the original d
 cameras heard each call and how loudly, and draws one translucent blob per species episode over a top-down
 map of your yard.
 
+![The live map: one blob per species episode over the example yard, with the species photo at its centre](docs/screenshot.png)
+
+*The example map with seeded episodes. Camera positions are the white dots; the blob's fade is the
+position uncertainty, and clicking one lists the cameras that heard it and how loudly.*
+
 ## Quick start
 
 You need a running BirdNET-Go with at least two RTSP (or other) audio sources whose names you know, and a
@@ -42,7 +47,8 @@ its default and the reason for it. The ones you will actually set:
 | `CONFIRM_MIN_CONF` | `0.7` | Confidence floor; keep it equal to BirdNET-Go's `birdnet.threshold`. |
 | `TZ` | `America/Denver` | Timezone for the "today" window. |
 
-The sections below describe how the tool actually works, in the order the data flows.
+The sections below describe how the tool actually works, in the order the data flows. Coding agents
+setting the tool up should start with `SETUP.md`; agents changing the code should read `AGENTS.md`.
 
 ## How it works
 
