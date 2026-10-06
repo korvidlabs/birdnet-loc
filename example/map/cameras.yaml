@@ -1,0 +1,46 @@
+# Example camera placements on example/map/map.png (north up). Pixel origin top-left.
+#
+# Copy this directory, replace map.png with a top-down image of your own yard (an aerial, a
+# sketch, a plan — anything north-up), and edit the entries below. `MAP_DIR` points birdloc at it.
+#
+# image_size:      the PNG's pixel size, used to validate positions.
+# scale_m_per_px:  metres per pixel. Measure one known distance on the image (a fence, a
+#                  driveway) and divide. Here: a 14.6 m (48 ft) fence spans 245 px.
+# cameras[].name:  must match the `source` name BirdNET-Go reports for that stream.
+# cameras[].px:    the camera's position on the image.
+# cameras[].bearing: compass degrees the camera faces (0 = N, 90 = E).
+# cameras[].fov_deg: assumed horizontal audio pickup width (180 for a typical camera mic).
+image: map.png
+image_size: [1129, 944]
+north_up: true
+scale_m_per_px: 0.05972   # 14.6 m / 245 px
+cameras:
+  - name: Back Yard North
+    px: [297, 301]
+    bearing: 232
+    fov_deg: 180
+  - name: Side Yard North
+    px: [313, 295]
+    bearing: 70
+    fov_deg: 180
+  - name: Front Yard North
+    px: [483, 304]
+    bearing: 140
+    fov_deg: 180
+  - name: Doorbell
+    px: [499, 438]
+    bearing: 97
+    fov_deg: 180
+  - name: Driveway
+    px: [488, 555]
+    bearing: 95
+    fov_deg: 180
+  - name: Back Yard South
+    px: [300, 585]
+    bearing: 285
+    fov_deg: 180
+  - name: Side Yard South
+    px: [311, 602]
+    bearing: 109
+    fov_deg: 180
+

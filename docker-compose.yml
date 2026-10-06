@@ -1,0 +1,41 @@
+services:
+  birdloc:
+    build: .
+    image: birdloc:local
+    container_name: birdloc
+    user: "${BIRDLOC_UID:-1000}:${BIRDLOC_GID:-1000}"
+    restart: unless-stopped
+    ports:
+      - "9522:8000"   # the map page and /api
+    environment:
+      - TZ=${TZ:-America/Denver}
+      - BIRDNET_URL=${BIRDNET_URL:?set BIRDNET_URL in .env}
+      - MAP_DIR=/map
+      - DATA_DIR=/data
+      # episode assembly from BirdNET-Go's `pending` stream (one blob per species episode)
+      - WINDOW_SECONDS=4
+      - CLOSE_AFTER_SECONDS=5
+      - MAX_EPISODE_SECONDS=30
+      - HITS_FULL=3
+      # confirmation gate: an episode is emitted only after BirdNET-Go confirms the
+      # species at or above its own threshold (config.yaml birdnet.threshold) on one
+      # of the episode's cameras. The SSE detection stream is NOT threshold-filtered,
+      # so the gate applies the threshold itself; keep this equal to that threshold.
+      - CONFIRM_MIN_CONF=${CONFIRM_MIN_CONF:-0.7}
+      # measured in the reference deployment: confirmation arrives p90 15 s after firstDetected
+      - CONFIRM_GRACE_SECONDS=20
+      - CONFIRM_RING_SECONDS=120
+      # range model: loudness sets distance along the bearing, self-calibrated per
+      # species. Tuned for a lot ~35 m across; widen for a bigger property.
+      - REF_RANGE_M=3
+      - MIN_RANGE_M=2
+      - MAX_RANGE_M=20
+      - FALLBACK_RANGE_M=6
+      - CALIB_MIN_N=20
+      - LEVEL_STALE_SECONDS=20
+      - MIN_RADIUS_M=1.5
+      - MAX_RADIUS_M=9
+    volumes:
+      # birdloc reads nothing from BirdNET-Go's database: only its HTTP API and SSE streams.
+      - ${MAP_DIR:-./example/map}:/map:ro
+      - ${DATA_DIR:-./birdloc-data}:/data

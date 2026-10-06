@@ -1,0 +1,17 @@
+# Song bands per species, in Hz (SD sd-bird-location §3).
+#
+# The table is hand-maintained: unknown species fall back to `default`, and the
+# table grows by editing this file, never by inference (SD §3, seam `band-learning`).
+# Keys are BirdNET-Go common names as they appear on the detections stream.
+default: [2500, 6300]
+species:
+  Black-capped Chickadee: [2500, 4000]
+  Blue Jay: [1600, 3100]
+  Rock Pigeon: [250, 500]
+  House Finch: [2500, 5000]
+  American Robin: [2000, 4000]
+  Townsend's Solitaire: [2500, 5000]
+  Northern Flicker: [1000, 2500]
+  Eurasian Collared-Dove: [400, 800]
+  House Sparrow: [2500, 5000]
+  Mourning Dove: [400, 630]
