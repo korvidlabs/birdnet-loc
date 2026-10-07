@@ -1,9 +1,10 @@
 # birdloc
 
 **Where in the yard was that bird?** birdloc listens to a [BirdNET-Go](https://github.com/tphakala/birdnet-go)
-instance that is fed by several microphones (security cameras, in the original deployment), works out which
-cameras heard each call and how loudly, and draws one translucent blob per species episode over a top-down
-map of your yard.
+instance fed by several microphones (security cameras, in the original deployment). Each camera that heard
+the call estimates how far away the bird was from how loud it sounded, and the bird is placed at the
+loudness-weighted average of those positions, with the spread between them as the uncertainty. The result is
+drawn over a top-down map of your yard.
 
 ![The live map: one blob per species episode over the example yard, with the species photo at its centre](docs/screenshot.png)
 
