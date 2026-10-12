@@ -1,8 +1,8 @@
 """Band-key mapping, source identity, and episode assembly from the `pending` stream."""
 
-from birdloc.bands import band_keys, load_bands, band_level_db
-from birdloc.config import Config
-from birdloc.ingest import EpisodeAssembler, SourceMap
+from birdnet_loc.bands import band_keys, load_bands, band_level_db
+from birdnet_loc.config import Config
+from birdnet_loc.ingest import EpisodeAssembler, SourceMap
 
 CFG = Config(window_seconds=4.0, close_after_seconds=5.0, max_episode_seconds=30.0)
 
@@ -325,7 +325,7 @@ def test_the_dropped_species_is_logged_so_the_impostor_list_is_visible(caplog):
     a.observe(**entry("Sora", "A", 1, 1000.0), now=1000.0)
     a.observe(**entry("Sora", "B", 1, 1000.0), now=1000.0)
     a.tick(now=1010.0)                      # closes, unconfirmed -> awaiting
-    with caplog.at_level(logging.INFO, logger="birdloc.ingest"):
+    with caplog.at_level(logging.INFO, logger="birdnet_loc.ingest"):
         a.tick(now=1010.0 + CFG.confirm_grace_seconds)
     msgs = [r.getMessage() for r in caplog.records if "never confirmed" in r.getMessage()]
     assert len(msgs) == 1
@@ -458,7 +458,7 @@ def test_reopen_guard_covers_the_lowered_t_path():
 
 def test_soundlevel_snapshot_goes_stale():
     import time
-    from birdloc.ingest import SoundLevels
+    from birdnet_loc.ingest import SoundLevels
     sm = SourceMap(); sm.learn_hash("rtsp_x", "Doorbell")
     sl = SoundLevels(sm, stale_seconds=20.0)
     sl._by_hash["rtsp_x"] = (time.time() - 5, {"1.0_kHz": {"max_db": -50}})
@@ -469,10 +469,10 @@ def test_soundlevel_snapshot_goes_stale():
 
 def test_unknown_source_warns_once(caplog):
     import logging
-    from birdloc.bands import BandTable
-    from birdloc.ingest import Ingestor
+    from birdnet_loc.bands import BandTable
+    from birdnet_loc.ingest import Ingestor
     ing = Ingestor(CFG, BandTable({}, (2500, 6300)), lambda e: None)
-    with caplog.at_level(logging.WARNING, logger="birdloc.ingest"):
+    with caplog.at_level(logging.WARNING, logger="birdnet_loc.ingest"):
         for _ in range(5):
             ing.note_unknown_source("Garage")
     assert sum("unknown camera name" in r.getMessage() for r in caplog.records) == 1

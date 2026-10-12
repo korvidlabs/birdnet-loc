@@ -1,14 +1,14 @@
-# birdloc
+# birdnet-loc
 
-**Where in the yard was that bird?** birdloc listens to a [BirdNET-Go](https://github.com/tphakala/birdnet-go)
+**Where in the yard was that bird?** birdnet-loc listens to a [BirdNET-Go](https://github.com/tphakala/birdnet-go)
 instance fed by several microphones (security cameras, in the original deployment). Each camera that heard
 the call estimates how far away the bird was from how loud it sounded, and the bird is placed at the
 loudness-weighted average of those positions, with the spread between them as the uncertainty. The result is
 drawn over a top-down map of your yard.
 
-![The live map: one blob per species episode over the example yard, with the species photo at its centre](docs/screenshot.png)
+![The live map: one circle per species episode over the example yard, with the species photo at its centre](docs/screenshot.png)
 
-*The example map with seeded episodes. Camera positions are the white dots; the blob's fade is the
+*The example map with seeded episodes. Camera positions are the white dots; each circle's fade is the
 position uncertainty, and clicking one lists the cameras that heard it and how loudly.*
 
 ## Quick start
@@ -29,15 +29,15 @@ north-up image of the area they cover.
    or without Docker:
 
        uv sync --group dev && uv run pytest -q
-       BIRDNET_URL=http://localhost:8080 MAP_DIR=./example/map DATA_DIR=/tmp/birdloc \
-         uv run uvicorn birdloc.web:app --port 9522
+       BIRDNET_URL=http://localhost:8080 MAP_DIR=./example/map DATA_DIR=/tmp/birdnet-loc \
+         uv run uvicorn birdnet_loc.web:app --port 9522
 
-Blobs appear as soon as BirdNET-Go confirms a species on one of the cameras that heard it. The range
+Estimates appear as soon as BirdNET-Go confirms a species on one of the cameras that heard it. The range
 model self-calibrates per species, so positions tighten over the first few days.
 
 ## Configuration
 
-Everything is read from the environment (`birdloc/config.py`); `docker-compose.yml` lists each knob with
+Everything is read from the environment (`birdnet_loc/config.py`); `docker-compose.yml` lists each knob with
 its default and the reason for it. The ones you will actually set:
 
 | Variable | Default | Meaning |
@@ -50,6 +50,20 @@ its default and the reason for it. The ones you will actually set:
 
 The sections below describe how the tool actually works, in the order the data flows. Coding agents
 setting the tool up should start with `SETUP.md`; agents changing the code should read `AGENTS.md`.
+
+## Song bands
+
+`bands.yaml` maps each species to the frequency range of its song, so loudness is read from the
+1/3-octave bands the bird actually sings in rather than from the whole spectrum. Unknown species use
+`default`. The table is maintained by hand; `bands-tool` helps:
+
+    uv run bands-tool check                                    # validate, show the bands each range selects
+    uv run bands-tool missing --birdnet-url http://host:8080   # species heard that have no entry yet
+    uv run bands-tool keys 1600 3100                           # which 1/3-octave bands a range covers
+    uv run bands-tool add "Blue Jay" 1600 3100                 # append an entry
+
+The file is baked into the image, so after editing it run `docker compose up -d --build`. `BANDS_YAML`
+overrides the path.
 
 ## How it works
 
@@ -66,7 +80,7 @@ species with `confidence >= CONFIRM_MIN_CONF` (0.7, = `birdnet.threshold`) on on
 episode's own cameras, in a `detection` event overlapping the episode's window — the SSE
 detection stream is not threshold-filtered, so the gate applies the threshold itself. An
 episode that closes unconfirmed waits `CONFIRM_GRACE_SECONDS` (20 s) and is then discarded and
-counted in `/health.unconfirmed_dropped`; the confirming confidence and camera reach the blob as
+counted in `/health.unconfirmed_dropped`; the confirming confidence and camera reach the estimate as
 `confirmed_conf` / `confirmed_by`. Confidence is a gate, never a weight.
 
 Each contributing camera is weighted `hits x band x dir`, and its **range** along the bearing
@@ -75,17 +89,16 @@ comes from loudness: `range = REF_RANGE_M x 10^((ref_db - band_db)/20)`, clamped
 band levels (self-calibrated, `calib` table, `CALIB_MIN_N` samples before it is trusted;
 `FALLBACK_RANGE_M` until then).
 
-**Species photos** are 192x192 centre-cropped thumbnails drawn in the middle of each blob
+**Species photos** are 192x192 centre-cropped thumbnails drawn in the middle of each estimate
 (one per species per 8 px cell, with a `xN` badge when episodes stack). Sources, in order:
 BirdNET-Go's `GET /api/v2/media/image/<scientific name>`, then Wikipedia's REST
-`page/summary` lead image (scientific name, then common name), the same way the author's
-household e-ink boards fetch theirs. Fetching happens only on a background worker, never in a request;
+`page/summary` lead image (scientific name, then common name). Fetching happens only on a background worker, never in a request;
 results are cached as PNGs in `DATA_DIR/photos/<slug>.png` and misses are retried after 24 h.
 
-**History is only what this tool itself recorded** in `birdloc.db` — there is no backfill, and
+**History is only what this tool itself recorded** in `birdnet-loc.db` — there is no backfill, and
 BirdNET-Go's own SQLite is never opened.
 
 ## Origins and licence
 
-birdloc was built for one household's BirdNET-Go node, fed by the audio of its Reolink cameras. It is MIT licensed (see `LICENSE`).
+birdnet-loc was built for one backyard's BirdNET-Go node, fed by the audio of its Reolink security cameras. It is MIT licensed (see `LICENSE`).
 The upstream BirdNET-Go project is unmodified and is not part of this repository.

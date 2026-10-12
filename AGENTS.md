@@ -5,9 +5,9 @@ you need to know that is not derivable from the code is here or in `README.md`.
 
 ## What this is
 
-birdloc estimates where a bird was from which BirdNET-Go audio sources heard it and how loudly, and
-draws it as a blob over a top-down map. It is a single Python package (`birdloc/`) served by FastAPI,
-with SQLite for state. There is no frontend build: the page is one HTML string in `birdloc/web.py`
+birdnet-loc estimates where a bird was from which BirdNET-Go audio sources heard it and how loudly, and
+draws it as a circle over a top-down map. It is a single Python package (`birdnet_loc/`) served by FastAPI,
+with SQLite for state. There is no frontend build: the page is one HTML string in `birdnet_loc/web.py`
 with inline CSS and JS.
 
 Operators follow `SETUP.md`. This file is about changing the code.
@@ -15,11 +15,11 @@ Operators follow `SETUP.md`. This file is about changing the code.
 ## Layout
 
 ```
-birdloc/
+birdnet_loc/
   config.py     every setting, read from the environment; defaults documented inline
   ingest.py     the two SSE clients, source-name mapping, the episode assembler and confirmation gate
-  estimate.py   the pure estimation model: bearing weights, loudness range, blob radius
-  store.py      SQLite blobs ring (24 h) and the per-species loudness calibration reservoir
+  estimate.py   the pure estimation model: bearing weights, loudness range, circle radius
+  store.py      SQLite ring of estimates (24 h, table `blobs`) and the per-species loudness calibration reservoir
   bands.py      per-species song bands (Hz) from bands.yaml
   cameras.py    cameras.yaml loader: positions, bearings, scale
   photos.py     species thumbnail cache (BirdNET-Go media proxy, then Wikipedia), background worker
@@ -34,14 +34,15 @@ tests/          pytest; no network, no BirdNET-Go needed
 ```
 uv sync --group dev                 # environment (Python 3.12, uv; uv.lock is authoritative)
 uv run pytest -q                    # the whole suite, ~1 s
-uvx ruff check --select F,E9 birdloc tests
-BIRDNET_URL=http://host:8080 MAP_DIR=./example/map DATA_DIR=/tmp/birdloc \
-  uv run uvicorn birdloc.web:app --port 9522 --reload
+uvx ruff check --select F,E9 birdnet_loc tests
+uv run bands-tool check                      # validate bands.yaml; `missing --birdnet-url` lists species without a band
+BIRDNET_URL=http://host:8080 MAP_DIR=./example/map DATA_DIR=/tmp/birdnet-loc \
+  uv run uvicorn birdnet_loc.web:app --port 9522 --reload
 docker compose up -d --build        # the container; .env supplies BIRDNET_URL, MAP_DIR, DATA_DIR
 ```
 
 `tests/conftest.py` sets `MAP_DIR`, `DATA_DIR`, `BANDS_YAML` and `CONFIRM_MIN_CONF=0.75` before
-`birdloc.web` is imported, because the App is built at import time.
+`birdnet_loc.web` is imported, because the App is built at import time.
 
 ## How the data flows
 
@@ -55,11 +56,11 @@ docker compose up -d --build        # the container; .env supplies BIRDNET_URL, 
    `confidence >= CONFIRM_MIN_CONF` on one of the episode's own sources. The detection stream is not
    threshold-filtered upstream, so the gate applies the threshold itself. Unconfirmed episodes are
    dropped after `CONFIRM_GRACE_SECONDS` and counted in `/health`.
-4. `estimate.py` turns the episode into a blob: each source is weighted by hit count, band level
+4. `estimate.py` turns the episode into an estimate: each source is weighted by hit count, band level
    and whether the bird is in front of it; its range along the bearing comes from loudness against
    the species' self-calibrated reference level (p95 of observed band levels, trusted after
    `CALIB_MIN_N` samples). Confidence is a gate, never a weight.
-5. `store.py` keeps the blob; `web.py` fans it out to SSE subscribers and asks `photos.py` for the
+5. `store.py` keeps the estimate; `web.py` fans it out to SSE subscribers and asks `photos.py` for the
    species thumbnail on a background worker.
 
 ## Rules
@@ -90,5 +91,5 @@ docker compose up -d --build        # the container; .env supplies BIRDNET_URL, 
 A unit-test pass is necessary, not sufficient, for anything touching ingestion or the page. Against
 a live BirdNET-Go, check all of: the container log shows both streams connected and no reconnect
 loop; `/health` reports `streams` true and `episode_accounting_ok` true; `/api/blobs` grows with a
-`cameras` list per blob; the page draws them. If `estimate_dropped` climbs, a source name in
+`cameras` list per row; the page draws them. If `estimate_dropped` climbs, a source name in
 `cameras.yaml` does not match what BirdNET-Go reports (see `SETUP.md`, step 3).

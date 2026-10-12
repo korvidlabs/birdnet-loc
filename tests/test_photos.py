@@ -12,8 +12,8 @@ import json
 import pytest
 from PIL import Image
 
-from birdloc.estimate import thumb_anchor, thumb_radius
-from birdloc.photos import PhotoCache, fit_square, slug
+from birdnet_loc.estimate import thumb_anchor, thumb_radius
+from birdnet_loc.photos import PhotoCache, fit_square, slug
 
 SCI = "Cyanocitta cristata"
 COMMON = "Blue Jay"

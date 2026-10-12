@@ -1,4 +1,4 @@
-# birdloc - container image
+# birdnet-loc - container image
 # Base pinned by tag AND digest: python:3.12.7-slim, sha256:60d9996b6a8a3689d36db740b49f4327be3be09a21122bd02fb8895abb38b50d
 FROM python:3.12.7-slim@sha256:60d9996b6a8a3689d36db740b49f4327be3be09a21122bd02fb8895abb38b50d
 
@@ -17,7 +17,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY bands.yaml README.md ./
-COPY birdloc ./birdloc
+COPY birdnet_loc ./birdnet_loc
 RUN uv sync --frozen --no-dev
 
 # The service writes only /data (a bind mount owned by the host user) and reads
@@ -30,4 +30,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4).status == 200 else 1)"]
 
-CMD ["uvicorn", "birdloc.web:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "birdnet_loc.web:app", "--host", "0.0.0.0", "--port", "8000"]

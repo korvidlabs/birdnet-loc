@@ -56,7 +56,7 @@ preceded its own pending entries in that capture, but the margin was one tick).
 
 Three identities exist per audio source (recon-birdnet-go-outputs §2c): the
 credential-stripped RTSP URL, the hash id `rtsp_<8hex>`, and the display name
-(= NVR channel name). The display name is this tool's key; `SourceMap`
+(the source name configured in BirdNET-Go). The display name is this tool's key; `SourceMap`
 maps the others onto it, learning from the `detection` event's source object and
 from the `pending` entry's own (`sourceID`, `source`) pairing. birdnet.db is not
 read at all: the pending stream teaches every name within seconds of start.
@@ -83,7 +83,7 @@ from .bands import BandTable, band_level_db
 from .config import Config
 from .estimate import Event, Hit
 
-log = logging.getLogger("birdloc.ingest")
+log = logging.getLogger("birdnet_loc.ingest")
 
 
 # --------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 # Example camera placements on example/map/map.png (north up). Pixel origin top-left.
 #
 # Copy this directory, replace map.png with a top-down image of your own yard (an aerial, a
-# sketch, a plan — anything north-up), and edit the entries below. `MAP_DIR` points birdloc at it.
+# sketch, a plan — anything north-up), and edit the entries below. `MAP_DIR` points birdnet-loc at it.
 #
 # image_size:      the PNG's pixel size, used to validate positions.
 # scale_m_per_px:  metres per pixel. Measure one known distance on the image (a fence, a

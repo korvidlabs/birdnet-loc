@@ -4,8 +4,8 @@ import time
 
 import pytest
 
-from birdloc.estimate import Blob
-from birdloc.store import Calibration, Store, percentile
+from birdnet_loc.estimate import Blob
+from birdnet_loc.store import Calibration, Store, percentile
 
 
 def blob(t, species="Blue Jay", **kw):
@@ -24,7 +24,7 @@ def blob(t, species="Blue Jay", **kw):
 
 @pytest.fixture()
 def store(tmp_path):
-    s = Store(str(tmp_path / "birdloc.db"), history_seconds=3600.0)
+    s = Store(str(tmp_path / "birdnet-loc.db"), history_seconds=3600.0)
     yield s
     s.close()
 
@@ -107,7 +107,7 @@ def test_since_returns_ascending_t(store):
 
 
 def test_load_recent_repopulates_the_ring_from_sqlite(tmp_path):
-    path = str(tmp_path / "birdloc.db")
+    path = str(tmp_path / "birdnet-loc.db")
     now = time.time()
     first = Store(path, history_seconds=3600.0)
     first.add(blob(now - 10, species="Blue Jay", clamped=True))
@@ -122,7 +122,7 @@ def test_load_recent_repopulates_the_ring_from_sqlite(tmp_path):
 
 
 def test_load_recent_handles_out_of_order_rows(tmp_path):
-    path = str(tmp_path / "birdloc.db")
+    path = str(tmp_path / "birdnet-loc.db")
     now = time.time()
     first = Store(path, history_seconds=3600.0)
     first.add(blob(now - 5, species="Fresh"))
@@ -174,7 +174,7 @@ def test_missing_and_nonfinite_levels_are_ignored(store):
 
 
 def test_the_reservoir_is_bounded_and_persisted(tmp_path):
-    path = str(tmp_path / "birdloc.db")
+    path = str(tmp_path / "birdnet-loc.db")
     first = Store(path)
     calib = Calibration(first.conn, first.lock, min_n=5, max_n=50)
     for i in range(120):
@@ -204,7 +204,7 @@ def test_species_are_calibrated_independently(store):
 def test_the_confirmation_columns_round_trip_through_sqlite(store):
     """Added by the idempotent migration; a blob's gate evidence must survive a
     restart, or the page cannot say what confirmed it."""
-    from birdloc.estimate import Blob
+    from birdnet_loc.estimate import Blob
     import time as _t
     t = _t.time()
     assert store.add(Blob(species="House Finch", sci_name="Haemorhous mexicanus", t=t,

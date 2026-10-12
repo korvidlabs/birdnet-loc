@@ -1,6 +1,6 @@
 # SETUP.md
 
-A procedure for a coding agent to install and verify birdloc against an existing BirdNET-Go. Execute
+A procedure for a coding agent to install and verify birdnet-loc against an existing BirdNET-Go. Execute
 it top to bottom. Each step says what to run, what a good result looks like, and what to do when it
 is not. Do not skip verification steps: a service that starts is not a service that works.
 
@@ -19,7 +19,7 @@ Good: the first returns JSON. The second prints `event:`/`data:` lines within 15
 
 If the first fails: wrong URL or port; stop and fix it before continuing. If the second prints
 nothing: sound-level reporting is off in BirdNET-Go (`realtime.audio.soundlevel.enabled`, or in the
-web UI under audio settings). birdloc cannot range without it. Turn it on and retry.
+web UI under audio settings). birdnet-loc cannot range without it. Turn it on and retry.
 
 ## 2. Collect the exact source names
 
@@ -28,7 +28,7 @@ curl -s -m 20 -N BIRDNET/api/v2/soundlevels/stream | grep -o '"source":"[^"]*"' 
 ```
 
 Good: one line per audio source, e.g. `"source":"Back Yard North"`. Record them verbatim; they are
-the keys in `cameras.yaml`. A name that differs by a character is a different camera to birdloc.
+the keys in `cameras.yaml`. A name that differs by a character is a different camera to birdnet-loc.
 
 If the names are RTSP URLs with credentials rather than display names, BirdNET-Go's display names
 are not configured; set them in its RTSP source settings so credentials are not used as keys.
@@ -36,7 +36,7 @@ are not configured; set them in its RTSP source settings so credentials are not 
 ## 3. Clone and build the map directory
 
 ```
-git clone https://github.com/korvidlabs/birdnet-loc.git birdloc && cd birdloc
+git clone https://github.com/korvidlabs/birdnet-loc.git && cd birdnet-loc
 mkdir -p map && cp example/map/cameras.yaml map/
 ```
 
@@ -72,24 +72,24 @@ with the system Python after `pip install pyyaml`.
 cp .env.example .env
 ```
 
-Edit `.env`: `BIRDNET_URL=BIRDNET`, `MAP_DIR=./map`, `DATA_DIR=./birdloc-data`, and `TZ` to the
+Edit `.env`: `BIRDNET_URL=BIRDNET`, `MAP_DIR=./map`, `DATA_DIR=./birdnet-loc-data`, and `TZ` to the
 host's zone. Then read BirdNET-Go's confidence threshold and match it:
 
 ```
 grep -A1 -i "threshold" <path to BirdNET-Go config.yaml> | head
 ```
 
-If it is not `0.7`, add `CONFIRM_MIN_CONF=<value>` to `.env`. birdloc only emits episodes BirdNET-Go
+If it is not `0.7`, add `CONFIRM_MIN_CONF=<value>` to `.env`. birdnet-loc only emits episodes BirdNET-Go
 confirmed at or above this; a mismatch either drops real birds or passes phantom ones.
 
-`mkdir -p birdloc-data` so the bind mount is owned by the invoking user. The container runs as
+`mkdir -p birdnet-loc-data` so the bind mount is owned by the invoking user. The container runs as
 uid 1000 by default; if `id -u` is different, add `BIRDLOC_UID=<uid>` and `BIRDLOC_GID=<gid>` to `.env`.
 
 ## 5. Start
 
 ```
 docker compose up -d --build
-docker compose logs -f birdloc
+docker compose logs -f birdnet-loc
 ```
 
 Good, within about 20 s: lines reporting the soundlevels and detections streams connected, and no
@@ -114,18 +114,18 @@ curl -s localhost:9522/api/cameras | python3 -m json.tool | head -30
 
 Good: every source name you recorded in step 2, with its pixel position.
 
-Wait for birds. In an active yard the first blob arrives within minutes of a confirmed detection;
+Wait for birds. In an active yard the first estimate arrives within minutes of a confirmed detection;
 at night it may take until dawn. Then:
 
 ```
 curl -s localhost:9522/api/blobs | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['count'], 'blobs'); print(d['blobs'][-1] if d['blobs'] else 'none yet')"
 ```
 
-Good: a count above 0, and the last blob carries `species`, `x_px`/`y_px`/`radius_px`, a `cameras`
+Good: a count above 0, and the last row carries `species`, `x_px`/`y_px`/`radius_px`, a `cameras`
 list naming the sources that heard it, and `confirmed_conf` at or above the threshold.
 
-Finally open `http://<host>:9522/` in a browser: the map with blobs, the species list at the right,
-and clicking a blob shows its cameras.
+Finally open `http://<host>:9522/` in a browser: the map with estimates, the species list at the right,
+and clicking one shows its cameras.
 
 ## 7. Read the health counters after an hour
 
@@ -135,11 +135,11 @@ curl -s localhost:9522/health | python3 -c "import sys,json; h=json.load(sys.std
 
 - `estimate_dropped` above 0 means episodes arrived whose sources are not in `cameras.yaml`. The
   log line `episode dropped, no known camera` names them; fix the spelling in `cameras.yaml` and
-  `docker compose restart birdloc`.
+  `docker compose restart birdnet-loc`.
 - `counts` shows `unconfirmed_dropped`. A large share of closed episodes dropping unconfirmed usually
   means `CONFIRM_MIN_CONF` is above BirdNET-Go's threshold; recheck step 4.
 - `calib.species_calibrated` grows as species collect `min_n` samples. Until a species is calibrated,
-  its blobs use `FALLBACK_RANGE_M`; positions tighten over the first days.
+  its estimates use `FALLBACK_RANGE_M`; positions tighten over the first days.
 
 ## 8. Tuning, when the geometry asks for it
 
@@ -150,5 +150,13 @@ documented where it is set. Change one, restart, and give it a day before judgin
 
 ## Done when
 
-Steps 6 and 7 read as "Good" from the host's own shell, and the page draws blobs over your map. Report
+After a day of detections, list the species the instance has heard that have no song band yet and add
+the ones that matter (a field guide's song frequency range is enough; unknown species use `default`):
+
+```sh
+uv run bands-tool missing --birdnet-url BIRDNET --min-count 20
+uv run bands-tool add "<common name>" <lo_hz> <hi_hz>
+```
+
+Steps 6 and 7 read as "Good" from the host's own shell, and the page draws estimates over your map. Report
 those readings, not the fact that the container started.

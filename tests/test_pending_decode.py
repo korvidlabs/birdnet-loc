@@ -8,9 +8,9 @@ from datetime import datetime
 
 import pytest
 
-from birdloc.bands import load_bands
-from birdloc.config import Config
-from birdloc.ingest import Ingestor
+from birdnet_loc.bands import load_bands
+from birdnet_loc.config import Config
+from birdnet_loc.ingest import Ingestor
 
 CFG = Config(window_seconds=4.0, close_after_seconds=5.0, max_episode_seconds=30.0)
 

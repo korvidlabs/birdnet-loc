@@ -10,9 +10,9 @@ import pathlib
 
 import pytest
 
-from birdloc.cameras import Camera, CameraSet, load_cameras
-from birdloc.config import Config
-from birdloc.estimate import Event, Hit, estimate, range_for
+from birdnet_loc.cameras import Camera, CameraSet, load_cameras
+from birdnet_loc.config import Config
+from birdnet_loc.estimate import Event, Hit, estimate, range_for
 
 SCALE = 0.03140  # metres per pixel for the synthetic camera sets below
 CFG = Config()
@@ -323,7 +323,7 @@ def test_hit_count_scales_the_weight_up_to_hits_full():
 
 
 def test_a_zero_hitcount_still_counts_as_one_window():
-    from birdloc.estimate import hits_factor
+    from birdnet_loc.estimate import hits_factor
     assert hits_factor(0, CFG.hits_full) == pytest.approx(1.0 / CFG.hits_full)
     assert hits_factor(1, CFG.hits_full) == pytest.approx(1.0 / CFG.hits_full)
 

@@ -1,8 +1,8 @@
 services:
-  birdloc:
+  birdnet-loc:
     build: .
-    image: birdloc:local
-    container_name: birdloc
+    image: birdnet-loc:local
+    container_name: birdnet-loc
     user: "${BIRDLOC_UID:-1000}:${BIRDLOC_GID:-1000}"
     restart: unless-stopped
     ports:
@@ -36,6 +36,6 @@ services:
       - MIN_RADIUS_M=1.5
       - MAX_RADIUS_M=9
     volumes:
-      # birdloc reads nothing from BirdNET-Go's database: only its HTTP API and SSE streams.
+      # birdnet-loc reads nothing from BirdNET-Go's database: only its HTTP API and SSE streams.
       - ${MAP_DIR:-./example/map}:/map:ro
-      - ${DATA_DIR:-./birdloc-data}:/data
+      - ${DATA_DIR:-./birdnet-loc-data}:/data

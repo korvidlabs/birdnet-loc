@@ -4,4 +4,4 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .env
-birdloc-data/
+birdnet-loc-data/

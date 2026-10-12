@@ -10,8 +10,8 @@ import time
 import pytest
 from fastapi.testclient import TestClient
 
-from birdloc import web
-from birdloc.estimate import Blob
+from birdnet_loc import web
+from birdnet_loc.estimate import Blob
 
 
 @pytest.fixture()
@@ -57,7 +57,7 @@ def test_health_is_ok_and_reports_the_counters(client):
 def test_health_accounts_for_every_emitted_episode(client):
     """episodes_emitted == stored + rejected + dropped, with every term non-zero:
     one storable episode, one duplicate (t, species), one all-unknown-camera."""
-    from birdloc.estimate import Event, Hit
+    from birdnet_loc.estimate import Event, Hit
     t = time.time()
     good = Event(species="Osprey", sci_name="Pandion haliaetus", t=t, hits=(Hit("Doorbell", 2),))
     web.state.ingestor.assembler.emitted += 3
@@ -75,7 +75,7 @@ def test_health_accounts_for_every_emitted_episode(client):
 def test_health_accounts_for_every_closed_episode(client):
     """The gate's invariant, every term non-zero:
     episodes_closed == episodes_emitted + unconfirmed_dropped (+ awaiting)."""
-    from birdloc.ingest import EpisodeAssembler
+    from birdnet_loc.ingest import EpisodeAssembler
     a = EpisodeAssembler(web.state.cfg, lambda ev: None)
     # one confirmed episode, one that is never confirmed, one still in grace
     a.observe("House Finch", "Haemorhous mexicanus", "Doorbell", 2, 1000.0, now=1000.0)
@@ -107,7 +107,7 @@ def test_health_accounts_for_every_closed_episode(client):
 
 
 def test_a_rejected_store_is_counted_not_swallowed(client):
-    from birdloc.estimate import Event, Hit
+    from birdnet_loc.estimate import Event, Hit
 
     before = client.get("/health").json()
     ev = Event(species="Blue Jay", sci_name="Cyanocitta cristata", t=time.time(),
@@ -121,7 +121,7 @@ def test_a_rejected_store_is_counted_not_swallowed(client):
 
 
 def test_an_episode_with_no_known_camera_is_counted_as_dropped(client):
-    from birdloc.estimate import Event, Hit
+    from birdnet_loc.estimate import Event, Hit
 
     before = client.get("/health").json()
     web.state.handle_event(Event(species="Blue Jay", sci_name="", t=time.time(),
@@ -216,7 +216,7 @@ def test_photo_is_404_until_the_worker_has_cached_it_then_200(client, tmp_path):
     worker runs, and only then does the same URL serve a PNG."""
     import asyncio
 
-    from birdloc import photos as photos_mod
+    from birdnet_loc import photos as photos_mod
 
     original = web.state.photos
     fetched = {"n": 0}
@@ -253,7 +253,7 @@ def test_photo_serves_a_pre_seeded_cache_file(client, tmp_path):
 
     from PIL import Image
 
-    from birdloc import photos as photos_mod
+    from birdnet_loc import photos as photos_mod
 
     d = tmp_path / "photos"
     d.mkdir(parents=True)
@@ -276,7 +276,7 @@ async def _never_fetch(url, headers):        # pragma: no cover - must not run
 
 
 def test_photos_status_map_and_health_counters(client, tmp_path):
-    from birdloc import photos as photos_mod
+    from birdnet_loc import photos as photos_mod
 
     original = web.state.photos
     web.state.photos = photos_mod.PhotoCache(str(tmp_path / "photos"), _never_fetch)

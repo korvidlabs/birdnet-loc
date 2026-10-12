@@ -1,4 +1,4 @@
-"""Settings for birdloc, read from the environment.
+"""Settings for birdnet-loc, read from the environment.
 
 Every knob of the estimation model lives here so a deployment can be
 retuned without editing code.
@@ -98,7 +98,7 @@ class Config:
 
     @property
     def db_path(self) -> str:
-        return os.path.join(self.data_dir, "birdloc.db")
+        return os.path.join(self.data_dir, "birdnet-loc.db")
 
 
 def load_config() -> Config:

@@ -36,12 +36,12 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 from urllib.parse import quote
 
-log = logging.getLogger("birdloc.photos")
+log = logging.getLogger("birdnet_loc.photos")
 
 THUMB_SIZE = (192, 192)
 WIKI_SUMMARY_URL = "https://en.wikipedia.org/api/rest_v1/page/summary/{title}"
-# Butterfly's convention: a named, versioned agent so Wikipedia can identify us.
-USER_AGENT = "birdloc/1.0 (https://github.com/tphakala/birdnet-go; household deployment)"
+# A named, versioned agent so Wikipedia can identify the caller.
+USER_AGENT = "birdnet-loc/0.1 (https://github.com/korvidlabs/birdnet-loc)"
 TIMEOUT_SECONDS = 10.0
 POLITENESS_SLEEP_SECONDS = 1.0
 RETRY_SECONDS = 24 * 3600.0
@@ -95,7 +95,7 @@ class PhotoCache:
     """Disk + memory cache of 192x192 species thumbnails.
 
     `dir` is `DATA_DIR/photos`; it persists across restarts through the same
-    bind mount `birdloc.db` lives in.
+    bind mount `birdnet-loc.db` lives in.
     """
 
     def __init__(
@@ -228,9 +228,9 @@ class PhotoCache:
         return True
 
     async def _fetch_wiki(self, title_source: str) -> bytes | None:
-        """Butterfly's `fetch_wiki_photo` shape: summary -> originalimage /
-        thumbnail.source -> image bytes, with a politeness sleep between the
-        two requests and the same UA header."""
+        """Wikipedia REST: page summary -> originalimage / thumbnail.source ->
+        image bytes, with a politeness sleep between the two requests and the
+        same UA header."""
         title = title_source.replace(" ", "_")
         headers = {"User-Agent": USER_AGENT}
         body = await self.fetcher(WIKI_SUMMARY_URL.format(title=title), headers)

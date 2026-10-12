@@ -27,7 +27,7 @@ from .ingest import Ingestor
 from .photos import PhotoCache
 from .store import Calibration, Store
 
-log = logging.getLogger("birdloc.web")
+log = logging.getLogger("birdnet_loc.web")
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 
 # 12 distinct hues, muted so blobs sit inside the map illustration instead of
@@ -127,7 +127,7 @@ class App:
 
 
 state = App()
-app = FastAPI(title="birdloc", docs_url=None, redoc_url=None)
+app = FastAPI(title="birdnet-loc", docs_url=None, redoc_url=None)
 
 
 @app.on_event("startup")
@@ -297,7 +297,7 @@ def index() -> HTMLResponse:
 PAGE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>birdloc - yard map</title>
+<title>birdnet-loc - yard map</title>
 <style>
   :root { color-scheme: light; --bg:#efe6d2; --fg:#2d3a35; --dim:#6b7a70; --line:#cdbfa3; --panel:#f6efdf; }
   * { box-sizing: border-box; }
@@ -344,7 +344,7 @@ PAGE = """<!doctype html>
 </style></head>
 <body>
 <header>
-  <h1>birdloc</h1>
+  <h1>birdnet-loc</h1>
   <button data-range="900">last 15 min</button>
   <button data-range="3600">last hour</button>
   <button data-range="today">today</button>
@@ -364,8 +364,8 @@ PAGE = """<!doctype html>
   </div>
   <aside>
     <ul class="legend" id="legend"></ul>
-    <div id="detail"><h2>No blob selected</h2><div class="status">
-      Click a blob for its contributing cameras.</div></div>
+    <div id="detail"><h2>Nothing selected</h2><div class="status">
+      Click a circle for its contributing cameras.</div></div>
   </aside>
 </main>
 <script>

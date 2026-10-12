@@ -8,7 +8,7 @@ import subprocess
 
 from fastapi.testclient import TestClient
 
-from birdloc import web
+from birdnet_loc import web
 
 
 def _script(path: str = "/") -> str:
