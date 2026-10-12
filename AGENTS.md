@@ -35,7 +35,7 @@ tests/          pytest; no network, no BirdNET-Go needed
 uv sync --group dev                 # environment (Python 3.12, uv; uv.lock is authoritative)
 uv run pytest -q                    # the whole suite, ~1 s
 uvx ruff check --select F,E9 birdnet_loc tests
-uv run bands-tool check                      # validate bands.yaml; `missing --birdnet-url` lists species without a band
+uv run bands-tool check                      # validate bands.yaml; `missing --birdnet-url` lists species without a band; docs/bands.md is the guide
 BIRDNET_URL=http://host:8080 MAP_DIR=./example/map DATA_DIR=/tmp/birdnet-loc \
   uv run uvicorn birdnet_loc.web:app --port 9522 --reload
 docker compose up -d --build        # the container; .env supplies BIRDNET_URL, MAP_DIR, DATA_DIR

@@ -117,3 +117,25 @@ def test_missing_with_nothing_missing_says_so(bands):
     only_known = [r for r in SUMMARY if r["common_name"] in ("Blue Jay", "Rock Pigeon")]
     code = bands_tool.cmd_missing(bands, "http://b", 1, out, fetch=lambda u: json.dumps(only_known).encode())
     assert code == 0 and "every species" in out.getvalue()
+
+
+def test_check_on_a_missing_file_fails_loudly(tmp_path):
+    code, text = run("--bands", str(tmp_path / "nope.yaml"), "check")
+    assert code == 1 and "does not exist" in text
+
+
+def test_missing_with_an_unreachable_instance_is_one_line_not_a_traceback(bands):
+    import urllib.error
+
+    def fetch(url):
+        raise urllib.error.URLError("Connection refused")
+
+    with pytest.raises(SystemExit) as e:
+        bands_tool.cmd_missing(bands, "http://birdnet:8080", 1, io.StringIO(), fetch=fetch)
+    assert "cannot reach BirdNET-Go at http://birdnet:8080/api/v2/analytics/species/summary" in str(e.value)
+
+
+def test_missing_with_a_non_json_body_names_the_url(bands):
+    with pytest.raises(SystemExit) as e:
+        bands_tool.cmd_missing(bands, "http://birdnet:8080", 1, io.StringIO(), fetch=lambda u: b"<html>")
+    assert "did not return JSON" in str(e.value)

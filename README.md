@@ -55,7 +55,8 @@ setting the tool up should start with `SETUP.md`; agents changing the code shoul
 
 `bands.yaml` maps each species to the frequency range of its song, so loudness is read from the
 1/3-octave bands the bird actually sings in rather than from the whole spectrum. Unknown species use
-`default`. The table is maintained by hand; `bands-tool` helps:
+`default`. The table is maintained by hand; [`docs/bands.md`](docs/bands.md) explains how to pick a range
+and `bands-tool` checks it:
 
     uv run bands-tool check                                    # validate, show the bands each range selects
     uv run bands-tool missing --birdnet-url http://host:8080   # species heard that have no entry yet

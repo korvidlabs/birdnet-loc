@@ -151,7 +151,7 @@ documented where it is set. Change one, restart, and give it a day before judgin
 ## Done when
 
 After a day of detections, list the species the instance has heard that have no song band yet and add
-the ones that matter (a field guide's song frequency range is enough; unknown species use `default`):
+the ones that matter. `docs/bands.md` explains how to choose a range; unknown species use `default`:
 
 ```sh
 uv run bands-tool missing --birdnet-url BIRDNET --min-count 20

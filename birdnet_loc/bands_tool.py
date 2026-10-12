@@ -15,7 +15,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
+import urllib.error
 import urllib.request
 from collections.abc import Callable
 
@@ -59,6 +61,9 @@ def describe(lo: float, hi: float) -> str:
 
 
 def cmd_check(path: str, out) -> int:
+    if not os.path.exists(path):
+        print(f"!! {path} does not exist; every species would use the built-in default", file=out)
+        return 1
     table = load_bands(path)
     bad = 0
     print(f"default: {describe(*table.default)}", file=out)
@@ -80,8 +85,15 @@ def cmd_keys(lo: float, hi: float, out) -> int:
 
 
 def species_summary(birdnet_url: str, fetch: Fetch = _http_get) -> list[dict]:
-    body = fetch(birdnet_url.rstrip("/") + SUMMARY_PATH)
-    rows = json.loads(body)
+    url = birdnet_url.rstrip("/") + SUMMARY_PATH
+    try:
+        body = fetch(url)
+    except (urllib.error.URLError, OSError) as exc:
+        raise SystemExit(f"cannot reach BirdNET-Go at {url}: {exc.reason if hasattr(exc, 'reason') else exc}")
+    try:
+        rows = json.loads(body)
+    except ValueError:
+        raise SystemExit(f"{url} did not return JSON; is BIRDNET_URL the BirdNET-Go base URL?")
     if not isinstance(rows, list):
         raise SystemExit(f"unexpected response from {SUMMARY_PATH}: {type(rows).__name__}")
     return rows
