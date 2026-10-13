@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Where in the yard was that bird? Loudness-weighted location estimates from multi-microphone BirdNET-Go detections, drawn over a map of your yard"
 readme = "README.md"
 license = "MIT"
-authors = [{ name = "Kory Kirk", email = "kory@korvidlabs.com" }]
+authors = [{ name = "koryk", email = "kory.kirk@gmail.com" }]
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "fastapi>=0.115",
